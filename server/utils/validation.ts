@@ -1,0 +1,3 @@
+import { z } from 'zod'
+export async function readValidated<T extends z.ZodTypeAny>(event:any,schema:T):Promise<z.infer<T>>{const input=await readBody(event);const result=schema.safeParse(input);if(!result.success)throw createError({statusCode:400,statusMessage:result.error.issues[0]?.message||'Invalid request'});return result.data}
+export const foodSchema=z.object({foodName:z.string().trim().min(1).max(160),mealType:z.enum(['Breakfast','Lunch','Snack','Dinner']),servingSize:z.string().trim().min(1).max(100),calories:z.coerce.number().min(0).max(20000),protein:z.coerce.number().min(0).max(2000),carbs:z.coerce.number().min(0).max(2000),fat:z.coerce.number().min(0).max(2000),confidence:z.coerce.number().min(0).max(1).optional()})

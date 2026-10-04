@@ -1,0 +1,3 @@
+export interface FoodEntry { id:string; foodName:string; mealType:string; servingSize:string; calories:number; protein:number; carbs:number; fat:number; confidence?:number|null }
+export interface NutritionSummary { date:string; totals:{calories:number;protein:number;carbs:number;fat:number}; goals:{calories:number;protein:number;carbs:number;fat:number;water:number}; entries:FoodEntry[] }
+export function useNutrition(){const date=useState('nutrition-date',()=>new Date().toLocaleDateString('en-CA'));const {data,pending,error,refresh}=useFetch<NutritionSummary>(()=>'/api/nutrition/daily?date='+date.value,{watch:[date]});return{date,data,pending,error,refresh}}
