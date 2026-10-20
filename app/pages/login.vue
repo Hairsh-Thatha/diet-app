@@ -1,5 +1,40 @@
 <script setup lang="ts">
-const form=reactive({email:'',password:''});const busy=ref(false);const error=ref('')
-async function submit(){busy.value=true;error.value='';try{await $fetch('/api/auth/login',{method:'POST',body:form});await navigateTo('/')}catch(e:any){error.value=e.data?.statusMessage||e.message||'Could not sign in. Check the database connection and try again.'}finally{busy.value=false}}
+definePageMeta({ layout: 'default' })
+const form = reactive({ email: '', password: '' })
+const remember = ref(true)
+const showPassword = ref(false)
+const busy = ref(false)
+const error = ref('')
+const toast = useToast()
+async function submit() {
+  busy.value = true
+  error.value = ''
+  try {
+    await $fetch('/api/auth/login', { method: 'POST', body: form })
+    await refreshNuxtData('nutriarc-auth-user')
+    toast.add({
+      title: 'Signed in successfully',
+      description: 'Welcome back to Nutric Arc.',
+      color: 'success',
+    })
+    await navigateTo('/')
+  } catch (e: any) {
+    error.value = e.data?.statusMessage || e.message || 'Could not sign in. Check your details and try again.'
+  } finally { busy.value = false }
+}
 </script>
-<template><div class="mx-auto max-w-md rounded-2xl bg-white p-7 shadow-sm"><p class="text-sm font-semibold text-emerald-700">WELCOME BACK</p><h1 class="mt-2 text-2xl font-semibold">Log in to NutriArc</h1><p class="mt-2 text-sm text-stone-500">Your meals and progress are saved to your account.</p><p v-if="error" role="alert" class="mt-5 rounded-xl bg-rose-50 p-4 text-sm text-rose-800">{{error}}</p><form class="mt-6 space-y-4" @submit.prevent="submit"><label class="block text-sm">Email<input v-model="form.email" type="email" autocomplete="email" required class="mt-1 w-full rounded-lg border p-3"></label><label class="block text-sm">Password<input v-model="form.password" type="password" autocomplete="current-password" required class="mt-1 w-full rounded-lg border p-3"></label><button class="w-full rounded-xl bg-emerald-800 p-3 font-semibold text-white disabled:opacity-60" :disabled="busy">{{busy?'Signing in…':'Log in'}}</button></form><p class="mt-5 text-center text-sm text-stone-500">New to NutriArc? <NuxtLink to="/create-account" class="font-semibold text-emerald-800">Create an account</NuxtLink></p></div></template>
+<template>
+  <div class="auth-form auth-form--login">
+    <h1>Welcome back</h1>
+    <p class="form-subtitle">Sign in to your Nutric Arc account to continue your journey towards a healthier, more active you.</p>
+    <p v-if="error" role="alert" class="form-error">{{ error }}</p>
+    <form @submit.prevent="submit">
+      <label class="auth-label">Email address<span class="input-wrap"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><input v-model="form.email" type="email" autocomplete="email" placeholder="you@example.com" required></span></label>
+      <label class="auth-label">Password<span class="input-wrap"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><input v-model="form.password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" placeholder="Enter your password" required><button type="button" class="visibility-toggle" :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.3-6 9.5-6 9.5 6 9.5 6-3.3 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></span></label>
+      <div class="form-options"><label class="check-label"><input v-model="remember" type="checkbox"><span class="checkmark">✓</span>Remember me</label><a href="#" class="text-link" @click.prevent="error = 'Password reset is not available yet. Please contact support.'">Forgot password?</a></div>
+      <button class="primary-auth-button" type="submit" :disabled="busy">{{ busy ? 'Signing in…' : 'Sign in' }} <span aria-hidden="true">→</span></button>
+    </form>
+
+    <p class="auth-footer">New to Nutric Arc? <NuxtLink to="/create-account">Create account</NuxtLink></p>
+  </div>
+</template>
